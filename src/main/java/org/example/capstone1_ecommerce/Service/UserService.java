@@ -53,6 +53,7 @@ public class UserService {
 
 
 
+
     public int buyProduct(String userID, String productID, String merchantID, ArrayList<MerchantStock> merchantStocks, ArrayList<Product> products){
         for (int i = 0; i < users.size(); i++){
             if (users.get(i).getId().equalsIgnoreCase(userID)){
@@ -83,8 +84,7 @@ public class UserService {
     }
 
 
-
-    public ArrayList<Product> recomendProducts(String id, ArrayList<MerchantStock> merchantStocks, ArrayList<Product> products){
+    public ArrayList<Product> recomendProducts(String id, ArrayList<MerchantStock> merchantStocks, ArrayList<Product> products, int min, int max){
 
         ArrayList<Product> recommendations = new ArrayList<>();
 
@@ -102,8 +102,8 @@ public class UserService {
                             recommendations.add(currentProduct);
                             continue;
                         }
-                        if (currentOrder.getPrice() >= (currentProduct.getPrice() - 1500)
-                                && currentOrder.getPrice() <= (currentProduct.getPrice() + 1500)) { // To check if any product is in the range (1500) of any product bought previously
+                        if (currentOrder.getPrice() >= min
+                            && currentOrder.getPrice() <= max) { // To check if any product is in the given range of any product bought previously
                             recommendations.add(currentProduct);
                         }
                     }
@@ -125,66 +125,39 @@ public class UserService {
     }
 
 
+    public int refundProduct(String userID, String productID, ArrayList<MerchantStock> merchantStocks){
 
-
-    public int resellProduct(String sellerID, String buyerID, String productID, int condition){
-
-        User seller = null;
-        User buyer = null;
         Product item = null;
-        double percentage = 0;
+        int index = -1;
 
         for (int i=0;i< users.size();i++){
-            if (users.get(i).getId().equalsIgnoreCase(sellerID)){
-                seller = users.get(i);
-            } else if (users.get(i).getId().equalsIgnoreCase(buyerID)) {
-                buyer = users.get(i);
+            if (users.get(i).getId().equalsIgnoreCase(userID)){
+                index=i;
+                break;
             }
         }
-        if (seller == null){
-            return 1; // seller not found
-        } else if (buyer == null) {
-            return 2; // buyer not found
+        if (index == -1){
+            return 1; // User not found
         }
-        for (int i=0;i<seller.getOrders().size();i++){
-            if (seller.getOrders().get(i).getId().equalsIgnoreCase(productID)){
-                item = seller.getOrders().get(i);
+
+
+        for (int i=0;i<users.get(index).getOrders().size();i++){
+            if (users.get(index).getOrders().get(i).getId().equalsIgnoreCase(productID)){
+                item = users.get(index).getOrders().get(i);
+                users.get(index).setBalance(users.get(index).getBalance() + users.get(index).getOrders().get(i).getPrice());
+                users.get(index).getOrders().remove(i);
             }
         }
         if (item == null){
-            return 3; // seller don't have this product
+            return 2; // user don't have this product
         }
-        switch (condition){
-            case 1:
-                percentage = 0.9;
-                break;
-            case 2:
-                percentage = 0.65;
-                break;
-            case 3:
-                percentage = 0.4;
-                break;
-            default:
-                return 4; // wrong condition choice
-        }
-
-        if (buyer.getBalance() < item.getPrice()){
-            return 5; // insufficient balance
-        }
-
-        buyer.setBalance( buyer.getBalance() - (item.getPrice() * percentage ) );
-        seller.setBalance( seller.getBalance() + (item.getPrice() * percentage ) );
-        buyer.addOrder(item);
-        for (int i=0;i<seller.getOrders().size();i++){
-            if (seller.getOrders().get(i).getId().equalsIgnoreCase(item.getId())){
-                seller.getOrders().remove(i);
-                break;
+        for (int i=0;i< merchantStocks.size();i++){
+            if (merchantStocks.get(i).getProductID().equalsIgnoreCase(item.getId())){
+                merchantStocks.get(i).setStock(merchantStocks.get(i).getStock() + 1);
             }
         }
         return 0; // Success
-
     }
-
 
 
     public int applyDiscount(String userID, String category, double discount, ArrayList<Product> products){
@@ -225,7 +198,6 @@ public class UserService {
         }
         return 4; // category entered not found
     }
-
 
 
     public String topSpender(){

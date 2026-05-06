@@ -99,33 +99,26 @@ public class UserController {
 
 
 
-    @GetMapping("/recommend/{id}")
-    public ResponseEntity<?> recommendProducts(@PathVariable String id){
+    @GetMapping("/recommend/{id}/{range}")
+    public ResponseEntity<?> recommendProducts(@PathVariable String id, @PathVariable int min, @PathVariable int max){
         ArrayList<MerchantStock> merchantStocks = merchantStockService.getMerchantStock();
         ArrayList<Product> products = productService.getProducts();
 
-
-
-        return ResponseEntity.status(200).body(userService.recomendProducts(id, merchantStocks, products));
+        return ResponseEntity.status(200).body(userService.recomendProducts(id, merchantStocks, products, min, max));
     }
 
 
 
-    @PutMapping("/resell/{sellerID}/{buyerID}/{productID}/{condition}")
-    public ResponseEntity<?> resellProduct(@PathVariable String sellerID, @PathVariable String buyerID, @PathVariable String productID, @PathVariable int condition){
-        switch (userService.resellProduct(sellerID, buyerID, productID, condition)){
+    @PutMapping("/refund/{userID}/{productID}")
+    public ResponseEntity<?> refundProduct(@PathVariable String userID, @PathVariable String productID){
+
+        switch (userService.refundProduct(userID, productID, merchantStockService.getMerchantStock())){
             case 1:
-                return ResponseEntity.status(400).body(new ApiResponse("Seller not found"));
+                return ResponseEntity.status(400).body(new ApiResponse("User not found"));
             case 2:
-                return ResponseEntity.status(400).body(new ApiResponse("Buyer not found"));
-            case 3:
-                return ResponseEntity.status(400).body(new ApiResponse("Product not found in seller's orders"));
-            case 4:
-                return ResponseEntity.status(400).body(new ApiResponse("Wrong condition choice"));
-            case 5:
-                return ResponseEntity.status(400).body(new ApiResponse("Insufficient balance"));
+                return ResponseEntity.status(400).body(new ApiResponse("user don't have this product"));
         }
-        return ResponseEntity.ok().body(new ApiResponse("Resell done successfully"));
+        return ResponseEntity.ok().body(new ApiResponse("Refund done successfully"));
     }
 
 
