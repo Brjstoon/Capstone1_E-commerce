@@ -281,7 +281,6 @@ public class UserService {
     public int deactivateUser(String reqID, String targetID){
 
         double threshold = 10000;
-        double totalSpent = 0;
         User requister = null;
         User target = null;
 
@@ -305,16 +304,10 @@ public class UserService {
         for (int i=0;i<target.getOrders().size();i++){
             totalSpent += target.getOrders().get(i).getPrice();
         }
-        if (totalSpent >= threshold){
-            return 222; // Target has a total spend value more than 10,000 so was not deactivated
+        if (target.getBalance() >= threshold){
+            return 222; // Target has a balance more than 10,000 so was not deactivated
         }
         for (int i=0;i<users.size();i++){
-            if (users.get(i).getId().equalsIgnoreCase(targetID)) {
-                if (target.getRole().equalsIgnoreCase("Admin")) {
-                    users.get(i).setRole("Customer");
-                    return 111; // Target was demoted from admin to customer
-                }
-            }
             if (users.get(i).getId().equalsIgnoreCase(targetID)){
                 users.remove(i);
                 break;

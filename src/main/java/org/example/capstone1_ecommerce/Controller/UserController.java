@@ -184,10 +184,8 @@ public class UserController {
                 return ResponseEntity.status(403).body(new ApiResponse("Requester is not an admin"));
             case 3:
                 return ResponseEntity.status(404).body(new ApiResponse("Target not found"));
-            case 111:
-                return ResponseEntity.ok().body(new ApiResponse("Target was demoted from admin to customer"));
             case 222:
-                return ResponseEntity.status(400).body(new ApiResponse("Target has spent more than 10,000 and cannot be deactivated"));
+                return ResponseEntity.status(400).body(new ApiResponse("Target has a balance more than 10,000 so was not deactivated"));
         }
         return ResponseEntity.ok().body(new ApiResponse("Target was removed successfully"));
     }
